@@ -1,0 +1,167 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>F77 zmq by scemama</title>
+
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/github-light.css">
+    <script src="javascripts/scale.fix.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+    <div class="wrapper">
+      <header>
+        <h1 class="header">F77 zmq</h1>
+        <p class="header">Fortran binding for ZeroMQ</p>
+
+        <ul>
+          <li class="download"><a class="buttons" href="https://github.com/scemama/f77_zmq/zipball/master">Download ZIP</a></li>
+          <li class="download"><a class="buttons" href="https://github.com/scemama/f77_zmq/tarball/master">Download TAR</a></li>
+          <li><a class="buttons github" href="https://github.com/scemama/f77_zmq">View On GitHub</a></li>
+        </ul>
+
+        <p class="header">This project is maintained by <a class="header name" href="https://github.com/scemama">scemama</a></p>
+
+
+      </header>
+      <section>
+        <h1>
+<a id="f77_zmq" class="anchor" href="#f77_zmq" aria-hidden="true"><span class="octicon octicon-link"></span></a>F77_ZMQ</h1>
+
+<p>A Fortran 77 binding library for <a href="http://zeromq.org">ZeroMQ</a></p>
+
+<p>This binding works with <a href="https://github.com/zeromq/zeromq4-1">ZeroMQ 4.1.3</a>.</p>
+
+<h2>
+<a id="usage" class="anchor" href="#usage" aria-hidden="true"><span class="octicon octicon-link"></span></a>Usage</h2>
+
+<p>Copy the <code>f77_zmq.h</code> and <code>libf77zmq.so</code> or <code>libf77zmq.a</code> files into
+your project.</p>
+
+<p>In your Fortran source files, include the <code>f77_zmq.h</code> file. This will define all the <code>ZMQ_*</code> constants.
+All the pointers (to sockets, messages, polling items, etc) are defined as <code>integer(ZMQ_PTR)</code>
+in order to handle 32-bit or 64-bit pointers.</p>
+
+<p>In your Makefile, compile as follows:</p>
+
+<pre><code>$(FC) -o $(TARGET) $(OBJ) -lzmq -lf77zmq 
+</code></pre>
+
+<p>or</p>
+
+<pre><code>$(FC) -o $(TARGET) $(OBJ) -lzmq libf77zmq.a
+</code></pre>
+
+<p>Be sure that <code>libzmq.so.4</code> is present in your <code>LD_LIBRARY_PATH</code> before executing the program.</p>
+
+<h2>
+<a id="installation-instructions" class="anchor" href="#installation-instructions" aria-hidden="true"><span class="octicon octicon-link"></span></a>Installation instructions</h2>
+
+<p>Python &gt;= 2.6 is required to create the <code>f77_zmq.h</code> file.</p>
+
+<p>Set the <code>ZMQ_H</code> environment variable to the absolute path of the zmq.h file, and run make.
+The default compiler is gcc.</p>
+
+<p>For example:</p>
+
+<pre><code>$ export ZMQ_H=/usr/include/zmq.h
+$ make
+</code></pre>
+
+<h2>
+<a id="differences-with-the-c-api" class="anchor" href="#differences-with-the-c-api" aria-hidden="true"><span class="octicon octicon-link"></span></a>Differences with the C API</h2>
+
+<p>In Fortran77 structs don't exist. They have been introduced with Fortran90.
+To maintain F77 compatibility, the structs are created using C functions
+and their pointers are passed to the Fortran. This implies the addition
+of a few functions.</p>
+
+<h3>
+<a id="additional-message-related-functions" class="anchor" href="#additional-message-related-functions" aria-hidden="true"><span class="octicon octicon-link"></span></a>Additional Message-related functions</h3>
+
+<ul>
+<li><p><code>integer(ZMQ_PTR) f77_zmq_msg_new()</code> : Allocates a <code>zmq_msg_t</code> and returns the pointer</p></li>
+<li>
+<p><code>integer f77_zmq_msg_destroy(msg)</code> : Deallocates the <code>zmq_msg_t</code>. Return value is <code>0</code>.</p>
+
+<ul>
+<li>
+<code>integer(ZMQ_PTR) msg</code> : message </li>
+</ul>
+</li>
+<li>
+<p><code>integer(ZMQ_PTR) f77_zmq_msg_data_new(size, buffer, size_buffer)</code> : Allocates a data
+buffer for messages, and copies the buffer into the data segment. If <code>size_buffer</code> is <code>0</code>,
+the data segement is uninitialized. The return value is a pointer to the data segment.</p>
+
+<ul>
+<li>
+<code>integer size</code> : Size of the data segment to allocate</li>
+<li>
+<code>buffer</code> : Buffer to copy. Fortran array or string.</li>
+<li>
+<code>integer size_buffer</code> : Number of bytes to copy from the buffer</li>
+</ul>
+</li>
+<li>
+<p><code>integer f77_zmq_msg_destroy_data(data)</code> : Deallocates a data segment. Return value is <code>0</code>.</p>
+
+<ul>
+<li>
+<code>integer(ZMQ_PTR) data</code> : pointer to the data segment to deallocate.</li>
+</ul>
+</li>
+<li>
+<p><code>integer f77_zmq_msg_copy_from_data(msg, buffer)</code> : Copies the data segment of a message 
+into a buffer.</p>
+
+<ul>
+<li>
+<code>integer(ZMQ_PTR) msg</code> : message</li>
+<li>
+<code>buffer</code> : fortran array of string</li>
+</ul>
+</li>
+<li>
+<p><code>integer f77_zmq_msg_copy_to_data(msg, buffer, size)</code> : Copies the data segment of a message 
+into a buffer.</p>
+
+<ul>
+<li>
+<code>integer(ZMQ_PTR) msg</code> : message</li>
+<li>
+<code>buffer</code> : fortran array of string</li>
+<li>
+<code>integer size</code> : Number of bytes to copy</li>
+</ul>
+</li>
+</ul>
+
+<h3>
+<a id="additional-polling-related-functions" class="anchor" href="#additional-polling-related-functions" aria-hidden="true"><span class="octicon octicon-link"></span></a>Additional Polling-related functions</h3>
+
+<ul>
+<li><p><code>integer(ZMQ_PTR) f77_zmq_pollitem_new()</code> : Allocates a <code>zmq_pollitem_t</code> and returns the pointer</p></li>
+<li>
+<p><code>integer f77_zmq_pollitem_destroy(item)</code> : Deallocates the <code>zmq_pollitem_t</code>. Return value is <code>0</code>.</p>
+
+<ul>
+<li>
+<code>integer(ZMQ_PTR) item</code> : poll item struct</li>
+</ul>
+</li>
+</ul>
+      </section>
+      <footer>
+        <p><small>Hosted on <a href="https://pages.github.com">GitHub Pages</a> using the Dinky theme</small></p>
+      </footer>
+    </div>
+    <!--[if !IE]><script>fixScale(document);</script><![endif]-->
+		
+  </body>
+</html>
